@@ -9,6 +9,7 @@ DIR_BASE = os.path.dirname(os.path.abspath(__file__))
 DIR_DATA = os.path.join(DIR_BASE, "data/")
 HEAD_NAME = "city"
 HEADER_NUM = 3
+CORE_NUM = 8
 
 def readFile(path):
     header = []
@@ -67,55 +68,57 @@ def calcExpected(map1, map2, targetKey):
     return [targetKey, minNumber]
 
 def multiProcess(args):
-    p = Pool(8)
+    p = Pool(CORE_NUM)
     output = p.map(wrapper, args)
     p.close()
     return output
 
-
-def calcSameTarget(data):
-    humans = list(data.keys())
-    
-    print("Choose a human.")
-    for i, human in enumerate(humans):
-        print("[{0}] {1}".format(i, human))
+def chooseHandler(values, message):
+    print(message)
+    for i, value in enumerate(values):
+        print("[{0}] {1}".format(i, value))
     
     try:
         num = int(input(">> ").strip())
     except:
-        print("Invalid input!")
-        return ""
+        print("Invalid input! 0 is selected")
+        num = 0
+    return num
+
+
+def calc_selected(data):
+    humans = list(data.keys())
+    num_human_te = chooseHandler(humans, "Choose a template human.")
+    print(num_human_te)
     
-    numbers = list(data[humans[num]].keys())
-    print("Choose a number in [].")
-    for i, number in enumerate(numbers):
-        print("[{0}] {1}".format(i, number))
-    try:
-        num1 = int(input("base>> ").strip())
-        num2 = int(input("target>> ").strip())
-    except:
-        print("Invalid input!")
-        return ""
+    counts_te = list(data[humans[num_human_te]].keys())
+    num_count_te = chooseHandler(counts_te, "Choose a number.")
     
-    for baseKey in data[humans[num]][numbers[num1]].keys():
+    num_human_ta = chooseHandler(humans, "Choose a target human.")
+    
+    counts_ta = list(data[humans[num_human_ta]].keys())
+    num_count_ta = chooseHandler(counts_ta, "Choose a number.")
+    
+    baseKeys = data[humans[num_human_te]][counts_te[num_human_te]].keys()
+    targetKeys = data[humans[num_human_ta]][counts_ta[num_count_ta]].keys()
+    correct = 0
+    for baseKey in baseKeys:
         values = []
-        args = [[data[humans[num]][numbers[num1]][baseKey],
-                data[humans[num]][numbers[num2]],
+        args = [[data[humans[num_human_te]][counts_te[num_count_te]][baseKey],
+                data[humans[num_human_ta]][counts_ta[num_count_ta]],
                 key
-                ]
-                for key in data[humans[num]][numbers[num2]].keys()
-                ]
+                ] for key in targetKeys]
         output = multiProcess(args)
         expected = sorted(output, key=lambda x:x[1])[0][0]
+        if expected==baseKey:
+            correct = 0
+
         print("Expected: {0}, Answer: {1}, {2}".format(expected, baseKey, expected==baseKey))
-         
-def calcDifferentTarget(data):
-    return
+    print("Acc: {}".format(correct / (len(baseKeys) * len(targetKeys))))
 
 
 def main():
     data = getData()
-    calcSameTarget(data) 
-
+    calc_selected(data)
 if __name__=="__main__":
     main()
