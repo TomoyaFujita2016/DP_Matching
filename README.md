@@ -1,7 +1,6 @@
 # DP_Matching
 ## Requirement
-- numpy
-- python3
+- requirements.txt
 
 ## Usage
 - `python3 matching.py`
