@@ -1,5 +1,6 @@
 import Route_searching_2D.explore as RS2_E
 from multiprocessing import Pool
+from tqdm import tqdm
 import sys
 import os
 import glob
@@ -102,7 +103,8 @@ def calc_selected(data):
     baseKeys = data[humans[num_human_te]][counts_te[num_human_te]].keys()
     targetKeys = data[humans[num_human_ta]][counts_ta[num_count_ta]].keys()
     correct = 0
-    for baseKey in baseKeys:
+    p_bar = tqdm(baseKeys, ncols=110)
+    for i, baseKey in enumerate(p_bar):
         values = []
         args = [[data[humans[num_human_te]][counts_te[num_count_te]][baseKey],
                 data[humans[num_human_ta]][counts_ta[num_count_ta]],
@@ -111,14 +113,14 @@ def calc_selected(data):
         output = multiProcess(args)
         expected = sorted(output, key=lambda x:x[1])[0][0]
         if expected==baseKey:
-            correct = 0
-
-        print("Expected: {0}, Answer: {1}, {2}".format(expected, baseKey, expected==baseKey))
-    print("Acc: {}".format(correct / (len(baseKeys) * len(targetKeys))))
-
+            correct += 1
+        acc = correct / (i+1)
+        p_bar.set_description("Expected: {0:>10}, Answer: {1:>10}, {2}, Acc: {3:.2%}".format(expected, baseKey, expected==baseKey, acc))
+    print("Acc: {0:.2%}".format(correct / (len(baseKeys))))
 
 def main():
     data = getData()
     calc_selected(data)
+
 if __name__=="__main__":
     main()
